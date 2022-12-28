@@ -25,7 +25,5 @@ qtcAddDeployment()
 
 HEADERS += \
     map.h \
-#    map.h
-    map.h \
     classes.h
 
