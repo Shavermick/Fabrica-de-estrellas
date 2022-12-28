@@ -22,7 +22,8 @@ SOURCES += main.cpp \
     entity.cpp \
     enemy.cpp \
     enemy.cpp \
-    player.cpp
+    player.cpp \
+    bullet.cpp
 
 include(deployment.pri)
 qtcAddDeployment()
