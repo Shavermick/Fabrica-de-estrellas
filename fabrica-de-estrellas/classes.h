@@ -345,6 +345,47 @@ public:
 
 };
 
+class Star :public Entity {//класс пули
+public:
+    int direction;
+//всё так же, только взяли в конце состояние игрока (int dir)
+//для задания направления полёта пули
+    Star(Image& image, float X, float Y, int W, int H, std::string Name, int dir)
+    :Entity(image, X, Y, W, H, Name) {
+        x = X;
+        y = Y;
+        direction = dir;
+        speed = 1;
+        w = h = 16;
+        life = true;
+    }
+
+    void update(float time)
+    {
+        dx = 0; dy = speed;
+        if (life) {
+x += dx * time;//само движение пули по х
+y += dy * time;//по у
+if (x <= 0) x = 20;// задержка пули в левой стене, чтобы при проседании кадров она случайно не вылетела за предел карты и не было ошибки(сервер может тормозить!)
+if (y <= 0) y = 20;
+if (x >= 800) x = 780;// задержка пули в правой стене, чтобы при проседании кадров она случайно не вылетела за предел карты и не было ошибки(сервер может тормозить!)
+if (y >= 594)
+{
+    y = 32 + rand() % 128;
+    x = 32 + rand() % 726;
+}
+sprite.setTextureRect(IntRect(0, 0, 16, 16));
+sprite.setPosition(x, y);//задается позицию пули
+}
+}
+
+FloatRect getRect() {//метод получения прямоугольника. его коорд, размеры (шир,высот).
+FloatRect FR(x, y, w, h); // переменная FR типа FloatRect
+
+return FR;
+
+}
+};
 
 
 #endif // CLASSES
