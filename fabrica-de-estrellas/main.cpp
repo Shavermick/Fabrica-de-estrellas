@@ -107,6 +107,34 @@ int main()
 
         }
 
+        for (it = Bullets.begin(); it != Bullets.end(); it++)
+                {
+                    for (it2 = enemies.begin(); it2 != enemies.end(); it2++)
+                    {
+                        if (p.state != p.dead)
+                        {
+                            if ((*it)->getRect().intersects((*it2)->getRect()))
+                            {
+                                (*it2)->state = (*it2)->dead;
+                                (*it)->life = false;
+                                playerScore++;
+
+                            }
+                        }
+
+
+                    }
+                    it2 = enemies.begin();
+                    while (it2 != enemies.end())
+                    {
+                        if ((*it2)->life == false)
+                        {
+                            it2 = enemies.erase(it2);
+
+                        }
+                        else it2++;
+                    }
+                }
 
         //Проверяем список на наличие "мертвых" пуль и удаляем их
         for (it = Bullets.begin(); it != Bullets.end(); )//говорим что проходимся от начала до конца
