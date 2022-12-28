@@ -136,6 +136,47 @@ int main()
                     }
                 }
 
+            int died = 0; //подсчет уничтоженных врагов
+            for (it = enemies.begin(); it != enemies.end(); it++)//подсчет врагов
+            {
+                if ((*it)->life == false) //проверяем мертв ли враг
+            {
+                died++;//если мертв то +1
+            }
+            }
+
+            it = enemies.begin();
+            while (it != enemies.end())//удаляем мертвого врага из списка
+            {
+                if ((*it)->life == false)
+            {
+                it = enemies.erase(it);
+            }
+                else it++;
+            }
+            //Clock tmpTimer;
+            int newLevelTime = 0;
+            //std::cout « enemies.size();
+            if ((enemies.size() == 0 || died == enemiesCount) && p.startDeathAnim == false && newLevelTime == 0)//если колво врагов в списке =0 либо колво убитых врагов = колву врагов в уровне и наш перс ещё жив
+            {
+            //LEVEL++;
+
+            timerClock.restart(); //создаем новых врагов
+            for (int i = 0; i < ENEMY_COUNT; i++)
+            {
+                float xr = 150 + rand() % 500; // случайная координата врага на поле игры по оси “x”
+                float yr = 40 + rand() % 40; // случайная координата врага на поле игры по оси “y”
+                //создаем врагов и помещаем в список
+                enemies.push_back(new Enemy(easyEnemyImage, xr, yr, 96, 96, "EasyEnemy"));
+                enemiesCount += 1; //увеличили счётчик врагов
+            }
+
+
+
+
+            }
+
+
         //Проверяем список на наличие "мертвых" пуль и удаляем их
         for (it = Bullets.begin(); it != Bullets.end(); )//говорим что проходимся от начала до конца
         {// если этот объект мертв, то удаляем его
