@@ -222,7 +222,7 @@ public:
     }
     void update(float time)
     {
-
+        static Clock clock;
 
         if (name == "EasyEnemy") {//для персонажа с таким именем логика будет такой
             if (startDeathAnim)
@@ -267,7 +267,8 @@ public:
                 //x += 0;
                 checkCollisionWithMap(dx, 0);//обрабатываем столкновение по Х
                 //y +=  cos(x/10); //движение по “Y”
-                 y += 2;
+                if (clock.getElapsedTime().asSeconds()>=5)
+                   y += 2;
                 checkCollisionWithMap(0, dy);//обрабатываем столкновение по Y
                 sprite.setPosition(x, y); //спрайт в позиции (x, y).
                 //если жизней меньше 0, либо равно 0, то умираем
