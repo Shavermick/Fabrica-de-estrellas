@@ -59,7 +59,7 @@ int main()
 
     //const int ENEMY_COUNT = 1; //максимальное количество врагов в игре
     int enemiesCount = 0; //текущее количество врагов в игре
-
+    int starsCount = 0;
     //Заполняем список объектами врагами
     for (int i = 0; i < ENEMY_COUNT; i++)
     {
@@ -67,6 +67,13 @@ int main()
         float yr = 40 + rand()%40; // случайная координата врага на поле игры по оси “y”
         enemies.push_back(new Enemy(easyEnemyImage, xr, yr, 96, 96, "EasyEnemy"));
         enemiesCount += 1; //увеличили счётчик врагов
+    }
+    for (int i = 0; i < STAR_COUNT; i++)
+    {
+    float xr = 32 + rand() % 726;;
+    float yr = 32 + rand() % 128;
+    stars.push_back(new Star(starImage, xr, yr, 16, 16, "Star", p.state));
+    starsCount += 1;
     }
     while (window.isOpen())
     {
@@ -91,7 +98,10 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
         }
-
+        for (it = stars.begin(); it != stars.end(); it++)
+        {
+        (*it)->update(time); //запускаем метод update()
+        }
         p.update(time);
         //оживляем врагов
         for (it = enemies.begin(); it != enemies.end(); it++)
