@@ -32,4 +32,5 @@ HEADERS += \
     map.h \
     bullet.h \
 #    map.h
+    player.h
 
