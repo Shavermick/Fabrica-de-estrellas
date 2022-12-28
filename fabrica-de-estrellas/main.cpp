@@ -207,7 +207,8 @@ int main()
             }
         }
         else {
-
+            window.close();
+            std::cout << "Game over. You are dead.\nYour score: " << playerScore;
         }
         window.clear();
 
