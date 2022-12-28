@@ -20,6 +20,7 @@ INCLUDEPATH += "C:\IT\sfml\SFML-2.3.2\include"
 
 SOURCES += main.cpp \
     entity.cpp \
+    enemy.cpp \
     enemy.cpp
 
 include(deployment.pri)
