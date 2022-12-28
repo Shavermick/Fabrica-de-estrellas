@@ -1,243 +1,350 @@
+#ifndef CLASSES
+#define CLASSES
+
 #include <iostream>
-#include <sstream>
+#include "map.h"
 #include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
-#include "Classes.h"
-//#include "map.h" //подключили код с картой
-#include <list>
-#include <ctime>
 
-//#include "Header.h"
+
 using namespace sf;
-int ENEMY_COUNT = 1;
-int STAR_COUNT = 15;
 
+int LEVEL = 1;
 
+class Entity {
+public:
+    enum { left, right, up, down, stay, dead } state;
+    float dx, dy, x, y, speed, moveTimer;//добавили переменную таймер для будущих целей
+    int w, h, health; //переменная “health”, хранящая жизни игрока
+    bool life; //переменная “life” жизнь, логическая
+    bool startDeathAnim = false;
+    Texture texture;//сфмл текстура
+    Sprite sprite;//сфмл спрайт
+    float CurrentFrame;//хранит текущий кадр
+    std::string name;//враги могут быть разные, врагов можно различать по именам
 
-int main()
-{
-    sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
-    sf::RenderWindow window(sf::VideoMode(800, 800, desktop.bitsPerPixel), "fabrica de estrellas");
-
-    //ТЕКСТОВАЯ СТРОКА
-    Font font;//шрифт
-    font.loadFromFile("CyrilicOld.ttf");//передаем нашему шрифту файл шрифта
-
-    Text text("", font, 20);//создаем объект текст
-    text.setColor(Color::Red);//покрасили текст в красный
-    text.setStyle(Text::Bold);//жирный текст.
-
-    Image map_image;//объект изображения для карты
-    map_image.loadFromFile("images/map_last.png");//загружаем файл для карты
-    Texture map;//текстура карты
-    map.loadFromImage(map_image);//заряжаем текстуру картинкой
-    Sprite s_map;//создаём спрайт для карты
-    s_map.setTexture(map);//заливаем текстуру спрайтом
-
-    Clock clock;
-    Clock gameTimeClock;//переменная игрового времени, будем здесь хранить время игры
-    Clock shootingClock;
-    Clock timerClock;
-    int gameTime = 0;//объявили игровое время, инициализировали.
-
-    Image heroImage;
-    heroImage.loadFromFile("images/mainn.png"); // загружаем изображение игрока
-    Image easyEnemyImage;
-    easyEnemyImage.loadFromFile("images/enemyy.png"); // загружаем изображение врага
-    Image BulletImage;//изображение для пули
-    BulletImage.loadFromFile("images/bullets.png");//загрузили картинку в объект изображения
-    Image starImage;
-    starImage.loadFromFile("images/star.png");
-    Player p(heroImage, 320, 400, 96, 96, "Player1");//объект класса игрока
-
-    std::list<Entity*> enemies; //список врагов
-    std::list<Entity*> Bullets; //список пуль
-    std::list<Entity*> stars;
-    std::list<Entity*>::iterator it;
-    std::list<Entity*>::iterator it2;//итератор чтобы проходить по элементам списка
-    int playerScore = 0;
-
-    //const int ENEMY_COUNT = 1; //максимальное количество врагов в игре
-    int enemiesCount = 0; //текущее количество врагов в игре
-
-    //Заполняем список объектами врагами
-    for (int i = 0; i < ENEMY_COUNT; i++)
-    {
-        float xr = 150 + rand() % 500; // случайная координата врага на поле игры по оси “x”
-        float yr = 40 + rand()%40; // случайная координата врага на поле игры по оси “y”
-        enemies.push_back(new Enemy(easyEnemyImage, xr, yr, 96, 96, "EasyEnemy"));
-        enemiesCount += 1; //увеличили счётчик врагов
+    Entity(Image& image, float X, float Y, int W, int H, std::string Name) {
+        x = X; y = Y; //координата появления спрайта
+        w = W; h = H;
+        name = Name;
+        moveTimer = 0;
+        dx = 0; dy = 0;
+        speed = 0;
+        CurrentFrame = 0;
+        health = 100;
+        life = true; //инициализировали логическую переменную жизни, герой жив
+        texture.loadFromImage(image); //заносим наше изображение в текстуру
+        sprite.setTexture(texture); //заливаем спрайт текстурой
     }
-    while (window.isOpen())
-    {
-        float time = clock.getElapsedTime().asMicroseconds();
-        if (p.life) gameTime = gameTimeClock.getElapsedTime().asSeconds();//игровое время в
-            clock.restart();
-        time = time / 800;
+    FloatRect getRect() {
+        FloatRect FR(x, y, w, h);
+        return FR;
 
-
-        int shootingTime = shootingClock.getElapsedTime().asSeconds();
-                int timerTime = timerClock.getElapsedTime().asSeconds();
-                if (shootingTime == 1 && p.life && timerTime < 5)
-                {
-                    Bullet* ptrBullet = new Bullet(BulletImage, p.x + 40, p.y, 10, 20, "Bullet", p.state);
-                    Bullets.push_back(ptrBullet);
-                    shootingClock.restart();
-                }
-
-        sf::Event event;
-        while (window.pollEvent(event))
-        {
-            if (event.type == sf::Event::Closed)
-                window.close();
-        }
-
-        p.update(time);
-        //оживляем врагов
-        for (it = enemies.begin(); it != enemies.end(); it++)
-        {
-            //std::cout << clock.getElapsedTime().asMicroseconds() << "\n";
-            (*it)->update(time); //запускаем метод update()
-        }
-        //оживляем пули
-        for (it = Bullets.begin(); it != Bullets.end(); it++)
-        {
-            (*it)->update(time); //запускаем метод update()
-
-
-        }
-
-        for (it = Bullets.begin(); it != Bullets.end(); it++)
-                {
-                    for (it2 = enemies.begin(); it2 != enemies.end(); it2++)
-                    {
-                        if (p.state != p.dead)
-                        {
-                            if ((*it)->getRect().intersects((*it2)->getRect()))
-                            {
-                                (*it2)->state = (*it2)->dead;
-                                (*it)->life = false;
-                                playerScore++;
-
-                            }
-                        }
-
-
-                    }
-                    it2 = enemies.begin();
-                    while (it2 != enemies.end())
-                    {
-                        if ((*it2)->life == false)
-                        {
-                            it2 = enemies.erase(it2);
-
-                        }
-                        else it2++;
-                    }
-                }
-
-            int died = 0; //подсчет уничтоженных врагов
-            for (it = enemies.begin(); it != enemies.end(); it++)//подсчет врагов
-            {
-                if ((*it)->life == false) //проверяем мертв ли враг
-            {
-                died++;//если мертв то +1
-            }
-            }
-
-            it = enemies.begin();
-            while (it != enemies.end())//удаляем мертвого врага из списка
-            {
-                if ((*it)->life == false)
-            {
-                it = enemies.erase(it);
-            }
-                else it++;
-            }
-            //Clock tmpTimer;
-            int newLevelTime = 0;
-            //std::cout « enemies.size();
-            if ((enemies.size() == 0 || died == enemiesCount) && p.startDeathAnim == false && newLevelTime == 0)//если колво врагов в списке =0 либо колво убитых врагов = колву врагов в уровне и наш перс ещё жив
-            {
-            //LEVEL++;
-
-            timerClock.restart(); //создаем новых врагов
-            for (int i = 0; i < ENEMY_COUNT; i++)
-            {
-                float xr = 150 + rand() % 500; // случайная координата врага на поле игры по оси “x”
-                float yr = 40 + rand() % 40; // случайная координата врага на поле игры по оси “y”
-                //создаем врагов и помещаем в список
-                enemies.push_back(new Enemy(easyEnemyImage, xr, yr, 96, 96, "EasyEnemy"));
-                enemiesCount += 1; //увеличили счётчик врагов
-            }
-
-
-
-
-            }
-
-
-        //Проверяем список на наличие "мертвых" пуль и удаляем их
-        for (it = Bullets.begin(); it != Bullets.end(); )//говорим что проходимся от начала до конца
-        {// если этот объект мертв, то удаляем его
-            if ((*it)->life == false) { it = Bullets.erase(it); }
-            else it++;//и идем курсором (итератором) к след объекту.
-        }
-        //Проверка пересечения игрока с врагами
-        //Если пересечение произошло, то "health = 0", игрок обездвижевается и
-        //выводится сообщение "you are lose"
-        if (p.life == true) {//если игрок жив
-            for (it = enemies.begin(); it != enemies.end(); it++) {//бежим по списку врагов
-                if ((p.getRect().intersects((*it)->getRect())) && ((*it)->name == "EasyEnemy"))
-                {
-                    p.startDeathAnim = true;
-
-
-                }
-            }
-        }
-        else {
-
-        }
-        window.clear();
-
-
-            for (int i = 0; i < HEIGHT_MAP; i++)
-                for (int j = 0; j < WIDTH_MAP; j++)
-                {
-                    if (TileMap[i][j] == ' ') s_map.setTextureRect(IntRect(0, 0, 0, 0));
-                    if (TileMap[i][j] == '1') s_map.setTextureRect(IntRect(0, 0, 0, 0));
-                    if ((TileMap[i][j] == '0')) s_map.setTextureRect(IntRect(0, 64, 32, 32));
-                    s_map.setPosition(j * 32, i * 32);
-                    window.draw(s_map);
-                }
-        //объявили переменную здоровья и времени
-        std::ostringstream playerHealthString, gameTimeString, playerScoreString;
-        playerHealthString << p.health;
-        playerScoreString << playerScore;
-        gameTimeString << gameTime;//формируем строку
-        text.setString("Здоровье: " + playerHealthString.str() + "\nВремя игры: " +	gameTimeString.str() + "\nСчет: " + playerScoreString.str());//задаем строку тексту
-        text.setPosition(50, 700);//задаем позицию текста
-        window.draw(text);//рисуем этот текст
-        window.draw(p.sprite);//рисуем спрайт объекта “p” класса “Player”
-        for (it = stars.begin(); it != stars.end(); it++)
-        {
-            if ((*it)->life) //если враги живы
-                window.draw((*it)->sprite); //рисуем
-        }
-        //рисуем врагов
-        for (it = enemies.begin(); it != enemies.end(); it++)
-        {
-            if ((*it)->life) //если враги живы
-                window.draw((*it)->sprite); //рисуем
-        }
-        //рисуем пули
-        for (it = Bullets.begin(); it != Bullets.end(); it++)
-        {
-            if ((*it)->life) //если пули живы
-                window.draw((*it)->sprite); //рисуем объекты
-        }
-        window.display();
     }
-    return 0;
-}
+    virtual void update(float time) = 0;
+};
+
+class Player :public Entity {
+public:
+
+    int playerScore;
+    Player(Image& image, float X, float Y, int W, int H, std::string Name) :Entity(image, X,
+        Y, W, H, Name) {
+        playerScore = 0;
+        state = stay;
+        if (name == "Player1") {
+            sprite.setTextureRect(IntRect(0, 0, w, h));
+        }
+    }
+    void control() {
+        if (Keyboard::isKeyPressed(Keyboard::Left)) {
+            state = left;
+            speed = 0.1;
+        }
+        if (Keyboard::isKeyPressed(Keyboard::Right)) {
+            state = right;
+            speed = 0.1;
+        }
+        if (Keyboard::isKeyPressed(Keyboard::Up)) {
+            state = up;
+            speed = 0.1;
+        }
+        if (Keyboard::isKeyPressed(Keyboard::Down)) {
+            state = down;
+            speed = 0.1;
+        }
+        if (Keyboard::isKeyPressed(Keyboard::Left) == false &&
+            Keyboard::isKeyPressed(Keyboard::Right) == false &&
+            Keyboard::isKeyPressed(Keyboard::Up) == false &&
+            Keyboard::isKeyPressed(Keyboard::Down) == false)
+        {
+            state = stay;
+        }
+        if (startDeathAnim) state = dead;
+    }
+
+    void checkCollisionWithMap(float Dx, float Dy) {
+        for (int i = y / 32; i < (y + h) / 32; i++)//проходимся по элементам карты
+            for (int j = x / 32; j < (x + w) / 32; j++)
+            {
+                if (TileMap[i][j] == '0')//если элемент тайлик земли
+                {
+                    if (Dy > 0) { y = i * 32 - h; dy = 0; }//по Y
+                    if (Dy < 0) { y = i * 32 + 32; dy = 0; }//столкновение с верхними краями
+                    if (Dx > 0) { x = j * 32 - w; dx = 0; }//с правым краем карты
+                    if (Dx < 0) { x = j * 32 + 32; dx = 0; }// с левым краем карты
+                }
+                if (TileMap[i][j] == 's') {
+                    playerScore++; //если взяли камень
+                    TileMap[i][j] = ' ';
+                }
+                if (TileMap[i][j] == 'f') {
+                    health -= 40;//если взяли ядовитый цветок
+                    TileMap[i][j] = ' ';//убрали цветок
+                }
+                if (TileMap[i][j] == 'h') {
+                    health += 20;//если взяли сердечко
+                    TileMap[i][j] = ' ';//убрали сердечко
+                }
+            }
+    }
+    void update(float time) //метод "оживления/обновления" объекта класса.
+    {
+        if (life) {//проверяем, жив ли герой
+            control();//функция управления персонажем
+            switch (state)//делаются различные действия в зависимости от состояния
+            {
+            case right: {//состояние идти вправо
+                dx = speed;
+                CurrentFrame += 0.005 * time;
+                if (CurrentFrame > 2) CurrentFrame -= 2;
+                sprite.setTextureRect(IntRect(96*int(CurrentFrame), 96, 96, 96));
+
+                break;
+            }
+            case left: {//состояние идти влево
+                dx = -speed;
+                CurrentFrame += 0.005 * time;
+                if (CurrentFrame > 2) CurrentFrame -= 2;
+                sprite.setTextureRect(IntRect(96 * int(CurrentFrame), 192, 96, 96));
+                break;
+            }
+
+            case stay: {//стоим
+                dy = speed;
+                dx = speed;
+                CurrentFrame += 0.005 * time;
+                if (CurrentFrame > 3) CurrentFrame -= 3;
+                sprite.setTextureRect(IntRect(96 * int(CurrentFrame), 0, 96, 96));
+                break;
+
+            }
+            case dead: {
+                dy = 0;
+                dx = 0;
+                CurrentFrame += 0.005 * time;
+                if (CurrentFrame > 7) life = false;
+                sprite.setTextureRect(IntRect(96 * int(CurrentFrame), 288, 96, 96));
+                break;
+            }
+            }
+            x += dx * time; //движение по “X”
+            checkCollisionWithMap(dx, 0);//обрабатываем столкновение по Х
+            y += dy * time; //движение по “Y”
+            checkCollisionWithMap(0, dy);//обрабатываем столкновение по Y
+            speed = 0; //обнуляем скорость, чтобы персонаж остановился.
+            //state = stay; //состояние - стоим
+            sprite.setPosition(x, y); //спрайт в позиции (x, y).
+            if (health <= 0) { life = false; }//если жизней меньше 0, либо равно 0, то умираем
+        }
+
+    }
+};
+
+class Enemy :public Entity {
+public:
+    int direction;//направление движения врага
+    Enemy(Image& image, float X, float Y, int W, int H, std::string Name) :Entity(image, X,
+        Y, W, H, Name) {
+        if (name == "EasyEnemy") {
+
+            sprite.setTextureRect(IntRect(0, 0, w, h));
+            direction = rand() % 10;
+            if (direction % 2 == 0) state = left;
+            else state = right;
+
+            speed = 0.1;//даем скорость.этот объект всегда двигается
+            dx = speed;
+
+
+        }
+        if (name == "HardEnemy") {
+
+            sprite.setTextureRect(IntRect(0, 0, w, h));
+            direction = 0; //Направление движения врага задаём случайным образом
+
+            speed = 0.1;//даем скорость.этот объект всегда двигается
+            dx = speed;
+        }
+
+    }
+
+    void checkCollisionWithMap(float Dx, float Dy)//ф-ция проверки столкновений с картой
+    {
+        for (int i = y / 32; i < (y + h) / 32; i++)//проходимся по элементам карты
+            for (int j = x / 32; j < (x + w) / 32; j++)
+            {
+                if (TileMap[i][j] == '0')//если элемент - тайлик земли
+                {
+                    if (Dy > 0) {
+                        life = false;
+                    }//по Y
+                    if (Dy < 0) {
+                        y = i * 32 + 32; dy = 0.1;
+                        direction = 3;//Направление движения врага
+                    }//столкновение с верхними краями
+                    if (Dx > 0) {
+                        x = j * 32 - w; dx = -0.1;
+                        state = left;//Направление движения врага
+                    }//с правым краем карты
+                    if (Dx < 0) {
+                        x = j * 32 + 32; dx = 0.1;
+                        state = right; //Направление движения врага
+                    }// с левым краем карты
+                }
+                if (TileMap[i][j] == '1')
+                {
+                    if (Dy > 0) {
+                        life = false;
+                    }//по Y
+                }
+            }
+        if (startDeathAnim) state = dead;
+    }
+
+    void updateClock()
+    {
+
+    }
+    void update(float time)
+    {
+
+        static Clock clock;
+        if (name == "EasyEnemy") {//для персонажа с таким именем логика будет такой
+            if (startDeathAnim)
+            {
+                dy = 0;
+                dx = 0;
+                CurrentFrame += 0.005 * time;
+                if (CurrentFrame > 7) CurrentFrame -= 7;
+                sprite.setTextureRect(IntRect(96 * int(CurrentFrame), 0, 96, 96));
+            }
+            if (life) {//проверяем, жив ли герой
+
+                switch (state)//делаются различные действия в зависимости от состояния
+                {
+                case dead: {
+                    dy = 0;
+                    dx = 0;
+                    CurrentFrame += 0.005 * time;
+                    if (CurrentFrame > 7) life = false;
+                    sprite.setTextureRect(IntRect(96 * int(CurrentFrame), 0, 96, 96));
+                    break;
+
+                }
+                case right: {//состояние идти вправо
+                    dx = speed;
+                    dy = speed / 10;
+                    CurrentFrame += 0.005 * time;
+                    if (CurrentFrame > 2) CurrentFrame -= 2;
+                    sprite.setTextureRect(IntRect(96 * int(CurrentFrame), 192, 96, 96));
+                    break;
+                }
+                case left: {//состояние идти влево
+                    dx = -speed;
+                    dy = speed / 10;
+                    CurrentFrame += 0.005 * time;
+                    if (CurrentFrame > 2) CurrentFrame -= 2;
+                    sprite.setTextureRect(IntRect(96 * int(CurrentFrame), 96, 96, 96));
+                    break;
+                }
+                }
+                x += dx * time; //движение по “X”
+                //x += 0;
+                checkCollisionWithMap(dx, 0);//обрабатываем столкновение по Х
+                //y +=  cos(x/10); //движение по “Y”
+                if (clock.getElapsedTime().asSeconds() >= 5) y += 2;
+                checkCollisionWithMap(0, dy);//обрабатываем столкновение по Y
+                sprite.setPosition(x, y); //спрайт в позиции (x, y).
+                //если жизней меньше 0, либо равно 0, то умираем
+            }
+        }
+
+
+    }
+
+
+};
+
+class Bullet :public Entity {//класс пули
+public:
+
+    int direction;//направление пули
+    //всё так же, только взяли в конце состояние игрока (int dir)
+    //для задания направления полёта пули
+    Bullet(Image& image, float X, float Y, int W, int H, std::string Name, int dir)
+        :Entity(image, X, Y, W, H, Name) {
+        x = X;
+        y = Y;
+        direction = dir;
+        speed = 0.8;
+        w = h = 16;
+        life = true;
+        //выше инициализация в конструкторе
+    }
+
+
+    void update(float time)
+    {
+        dx = 0; dy = -speed;
+        //switch (direction)
+        //{
+        //case 0: dx = -speed; dy = 0; break;// state = left
+        //case 1: dx = speed; dy = 0; break;// state = right
+        //case 2: dx = 0; dy = -speed; break;// state = up
+        //case 3: dx = 0; dy = speed; break;// state = down
+        //}
+        if (life) {
+            x += dx * time;//само движение пули по х
+            y += dy * time;//по у
+            if (x <= 0) x = 20;// задержка пули в левой стене, чтобы при проседании кадров она случайно не вылетела за предел карты и не было ошибки(сервер может тормозить!)
+            if (y <= 0) y = 20;
+            if (x >= 800) x = 780;// задержка пули в правой стене, чтобы при проседании	кадров она случайно не вылетела за предел карты и не было ошибки(сервер может тормозить!)
+            if (y >= 640) y = 620;
+            for (int i = y / 32; i < (y + h) / 32; i++)//проходимся по элементам карты
+                for (int j = x / 32; j < (x + w) / 32; j++)
+                {
+                    if (TileMap[i][j] == '0')//если элемент наш тайлик земли, то
+                        life = false;// то пуля умирает
+                }
+            CurrentFrame += 0.005 * time;
+            if (CurrentFrame > 4) CurrentFrame = 4;
+            sprite.setTextureRect(IntRect(10 * int(CurrentFrame), 0, 10, 20));
+            sprite.setPosition(x + w / 2, y + h / 2);//задается позицию пули
+            //checkCollisionsWithEnemies(entityList);
+        }
+    }
+
+    FloatRect getRect() {
+        FloatRect FR(x, y, w, h);
+
+
+        return FR;
+
+    }
+
+
+};
+
+
+
+#endif // CLASSES
