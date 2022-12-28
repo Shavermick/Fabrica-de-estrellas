@@ -30,6 +30,6 @@ HEADERS += \
     enemy.h \
     player.h \
     map.h \
-    bullet.h
+    bullet.h \
 #    map.h
 
