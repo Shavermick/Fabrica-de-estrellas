@@ -139,7 +139,12 @@ public:
 
             }
             case dead: {
-                life = false;
+                dy = 0;
+                dx = 0;
+                CurrentFrame += 0.005 * time;
+                if (CurrentFrame > 7) life = false;
+                sprite.setTextureRect(IntRect(96 * int(CurrentFrame), 288, 96, 96));
+                break;
             }
             }
             x += dx * time; //движение по “X”
