@@ -18,24 +18,14 @@ LIBS += -lsfml-audio-d -lsfml-graphics-d -lsfml-main-d -lsfml-network-d -lsfml-w
 INCLUDEPATH += "C:\IT\sfml\SFML-2.3.2\include"
 
 
-SOURCES += main.cpp \
-    entity.cpp \
-    enemy.cpp \
-    enemy.cpp \
-    player.cpp \
-    bullet.cpp
+SOURCES += main.cpp
 
 include(deployment.pri)
 qtcAddDeployment()
 
 HEADERS += \
-    entity.h \
-    enemy.h \
-    player.h \
     map.h \
-    bullet.h \
 #    map.h
-    player.h \
     map.h \
-    bullet.h
+    classes.h
 
