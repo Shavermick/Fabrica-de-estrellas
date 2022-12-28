@@ -73,8 +73,14 @@ int main()
         if (p.life) gameTime = gameTimeClock.getElapsedTime().asSeconds();//игровое время в
             clock.restart();
         time = time / 800;
-
-
+        int shootingTime = shootingClock.getElapsedTime().asSeconds();
+        int timerTime = timerClock.getElapsedTime().asSeconds();
+        if (shootingTime == 1 && p.life && timerTime < 5)
+        {
+            Bullet* ptrBullet = new Bullet(BulletImage, p.x + 40, p.y, 10, 20, "Bullet", p.state);
+            Bullets.push_back(ptrBullet);
+            shootingClock.restart();
+        }
 
         sf::Event event;
         while (window.pollEvent(event))
